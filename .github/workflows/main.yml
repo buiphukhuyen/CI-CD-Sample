@@ -6,37 +6,33 @@ on:
 
 jobs:
   build-and-push:
-
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Login Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Login Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/springboot-app:latest
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        push: true
-        tags: ${{ secrets.DOCKER_USERNAME }}/springboot-app:latest
-    - name: Deploy to DevOps Classroom
-      run: |
-          # Chỉ cần DEPLOY_URL; hệ thống tự map image_repo + container_port
-          # Có thể bỏ ?tag để mặc định latest
-          DEPLOY_ENDPOINT="${{ secrets.DEPLOY_URL }}?tag=${{ github.sha }}"
+      - name: Deploy to DevOps Classroom
+        run: |
+          DEPLOY_ENDPOINT="${{ secrets.DEPLOY_URL }}?repo=${{ secrets.DOCKER_USERNAME }}/springboot-app&tag=latest"
           RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST "$DEPLOY_ENDPOINT")
           BODY=$(echo "$RESPONSE" | sed '$d')
           CODE=$(echo "$RESPONSE" | tail -n1)
           echo "Webhook HTTP: $CODE"
           echo "$BODY"
           if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
-            echo "Deploy failed from server response"
             exit 1
           fi
