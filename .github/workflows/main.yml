@@ -27,14 +27,5 @@ jobs:
 
       - name: Triển khai lên DevOps Classroom
         run: |
-          REPO="${{ github.repository_owner }}/${{ github.event.repository.name }}"
-          DEPLOY_ENDPOINT="${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=${{ github.sha }}"
-          RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST "$DEPLOY_ENDPOINT")
-          BODY=$(echo "$RESPONSE" | sed '$d')
-          CODE=$(echo "$RESPONSE" | tail -n1)
-          echo "Webhook HTTP: $CODE"
-          echo "$BODY"
-          if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
-            echo "Deploy failed from server response"
-            exit 1
-          fi
+          REPO="buiphukhuyen/springboot-app"
+          curl -fsS -X POST "${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=${{ github.sha }}" | python3 -m json.tool
