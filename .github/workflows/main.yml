@@ -28,4 +28,12 @@ jobs:
       - name: Triển khai lên DevOps Classroom
         run: |
           REPO="buiphukhuyen/springboot-app"
-          curl -fsS -X POST "${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=${{ github.sha }}" | python3 -m json.tool
+          RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST "${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=${{ github.sha }}")
+          BODY=$(echo "$RESPONSE" | sed "$d")
+          CODE=$(echo "$RESPONSE" | tail -n1)
+          echo "Webhook HTTP: $CODE"
+          echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
+          if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
+            echo "Deploy thất bại. Xem diagnosis_vi/hint_vi trong JSON bên trên."
+            exit 1
+          fi
