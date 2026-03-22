@@ -28,7 +28,8 @@ jobs:
         tags: ${{ secrets.DOCKER_USERNAME }}/springboot-app:latest
     - name: Deploy to DevOps Classroom
       run: |
-          DEPLOY_ENDPOINT="${{ secrets.DEPLOY_URL }}?image=${{ env.DOCKER_IMAGE }}:${{ github.sha }}&container_port=${{ env.CONTAINER_PORT }}"
+          # Hệ thống tự map image_repo + container_port từ cấu hình team trên server
+          DEPLOY_ENDPOINT="${{ secrets.DEPLOY_URL }}?tag=${{ github.sha }}"
           RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST "$DEPLOY_ENDPOINT")
           BODY=$(echo "$RESPONSE" | sed '$d')
           CODE=$(echo "$RESPONSE" | tail -n1)
