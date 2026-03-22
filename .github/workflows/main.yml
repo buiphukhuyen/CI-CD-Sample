@@ -26,3 +26,8 @@ jobs:
         context: .
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/springboot-app:latest
+    - name: Deploy to DevOps Classroom
+      run: |
+          curl -s -X POST "${{ secrets.DEPLOY_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"image\": \"${{ env.DOCKER_IMAGE }}:${{ github.sha }}\"}"
